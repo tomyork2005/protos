@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package event;
+
+option go_package = "presence/protos/gen;event";
+
+service WSRouter{
+  rpc Publish(PublishRequest) returns (PublishResponse);
+}
+
+service WSRouterClient{
+  rpc GetEventFromWsRouter(GetRequest) returns (GetResponse);
+}
+
+message Answer{
+  string status = 1;
+}
+
+message PublishRequest{
+  string client_id = 1;
+  string session_id = 2;
+  repeated  string channels = 3;
+  bytes data = 4;
+}
+
+message PublishResponse{
+  Answer answer = 1;
+}
+
+message Event{
+  string client_id = 1;
+  string session_id = 2;
+  string channel = 3;
+  bytes data = 4;
+  string eventType = 5;
+}
+
+message GetRequest{
+  repeated Event event = 1;
+}
+
+message GetResponse{
+  Answer answer = 1;
+}
