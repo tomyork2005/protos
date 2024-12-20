@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	WSRouter_Publish_FullMethodName = "/event.WSRouter/Publish"
+	WSRouter_Publish_FullMethodName = "/eventProto.WSRouter/Publish"
 )
 
 // WSRouterClient is the client API for WSRouter service.
@@ -108,7 +108,7 @@ func _WSRouter_Publish_Handler(srv interface{}, ctx context.Context, dec func(in
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var WSRouter_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "event.WSRouter",
+	ServiceName: "eventProto.WSRouter",
 	HandlerType: (*WSRouterServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -121,7 +121,7 @@ var WSRouter_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	WSRouterClient_GetEventFromWsRouter_FullMethodName = "/event.WSRouterClient/GetEventFromWsRouter"
+	WSRouterClient_GetEventFromWsRouter_FullMethodName = "/eventProto.WSRouterClient/GetEventFromWsRouter"
 )
 
 // WSRouterClientClient is the client API for WSRouterClient service.
@@ -210,7 +210,7 @@ func _WSRouterClient_GetEventFromWsRouter_Handler(srv interface{}, ctx context.C
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var WSRouterClient_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "event.WSRouterClient",
+	ServiceName: "eventProto.WSRouterClient",
 	HandlerType: (*WSRouterClientServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
