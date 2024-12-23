@@ -1,30 +1,35 @@
 syntax = "proto3";
 
-package eventProto;
+package protobuf.wsRouter;
 
 option go_package = "presence/protos/gen;event";
 
+// These are the ws-router methods that it provides to other microservices that use it to publish their messages via ws.
 service WSRouter{
-  rpc Publish(PublishRequest) returns (PublishResponse);
+  rpc PublishMessageToWs(PublishMessageToWsRequest) returns (PublishMessageToWsResponse);
 }
 
-service WSRouterClient{
-  rpc GetEventFromWsRouter(GetRequest) returns (GetResponse);
+// These are the methods that a microservice should have in order for it to be considered a ws-router client.
+service Clients{
+  rpc PublishEvents(PublishEventsRequest) returns (PublishEventsResponse);
 }
 
-message Answer{
-  string status = 1;
+message PublishMessageToWsResponse {
+  string Err = 1;
 }
 
-message PublishRequest{
-  string client_id = 1;
-  string session_id = 2;
-  repeated  string channels = 3;
-  bytes data = 4;
+message PublishEventsResponse {
+  string Err = 1;
 }
 
-message PublishResponse{
-  Answer answer = 1;
+message PublishMessageToWsRequest{
+  repeated string client_ids = 1;
+  repeated string channels = 2;
+  bytes data = 3;
+}
+
+message PublishEventsRequest{
+  repeated Event event = 1;
 }
 
 message Event{
@@ -35,10 +40,5 @@ message Event{
   string eventType = 5;
 }
 
-message GetRequest{
-  repeated Event event = 1;
-}
 
-message GetResponse{
-  Answer answer = 1;
-}
+

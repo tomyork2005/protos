@@ -19,14 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	WSRouter_Publish_FullMethodName = "/eventProto.WSRouter/Publish"
+	WSRouter_PublishMessageToWs_FullMethodName = "/protobuf.wsRouter.WSRouter/PublishMessageToWs"
 )
 
 // WSRouterClient is the client API for WSRouter service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+//
+// These are the ws-router methods that it provides to other microservices that use it to publish their messages via ws.
 type WSRouterClient interface {
-	Publish(ctx context.Context, in *PublishRequest, opts ...grpc.CallOption) (*PublishResponse, error)
+	PublishMessageToWs(ctx context.Context, in *PublishMessageToWsRequest, opts ...grpc.CallOption) (*PublishMessageToWsResponse, error)
 }
 
 type wSRouterClient struct {
@@ -37,10 +39,10 @@ func NewWSRouterClient(cc grpc.ClientConnInterface) WSRouterClient {
 	return &wSRouterClient{cc}
 }
 
-func (c *wSRouterClient) Publish(ctx context.Context, in *PublishRequest, opts ...grpc.CallOption) (*PublishResponse, error) {
+func (c *wSRouterClient) PublishMessageToWs(ctx context.Context, in *PublishMessageToWsRequest, opts ...grpc.CallOption) (*PublishMessageToWsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(PublishResponse)
-	err := c.cc.Invoke(ctx, WSRouter_Publish_FullMethodName, in, out, cOpts...)
+	out := new(PublishMessageToWsResponse)
+	err := c.cc.Invoke(ctx, WSRouter_PublishMessageToWs_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -50,8 +52,10 @@ func (c *wSRouterClient) Publish(ctx context.Context, in *PublishRequest, opts .
 // WSRouterServer is the server API for WSRouter service.
 // All implementations must embed UnimplementedWSRouterServer
 // for forward compatibility.
+//
+// These are the ws-router methods that it provides to other microservices that use it to publish their messages via ws.
 type WSRouterServer interface {
-	Publish(context.Context, *PublishRequest) (*PublishResponse, error)
+	PublishMessageToWs(context.Context, *PublishMessageToWsRequest) (*PublishMessageToWsResponse, error)
 	mustEmbedUnimplementedWSRouterServer()
 }
 
@@ -62,8 +66,8 @@ type WSRouterServer interface {
 // pointer dereference when methods are called.
 type UnimplementedWSRouterServer struct{}
 
-func (UnimplementedWSRouterServer) Publish(context.Context, *PublishRequest) (*PublishResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Publish not implemented")
+func (UnimplementedWSRouterServer) PublishMessageToWs(context.Context, *PublishMessageToWsRequest) (*PublishMessageToWsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PublishMessageToWs not implemented")
 }
 func (UnimplementedWSRouterServer) mustEmbedUnimplementedWSRouterServer() {}
 func (UnimplementedWSRouterServer) testEmbeddedByValue()                  {}
@@ -86,20 +90,20 @@ func RegisterWSRouterServer(s grpc.ServiceRegistrar, srv WSRouterServer) {
 	s.RegisterService(&WSRouter_ServiceDesc, srv)
 }
 
-func _WSRouter_Publish_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PublishRequest)
+func _WSRouter_PublishMessageToWs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PublishMessageToWsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(WSRouterServer).Publish(ctx, in)
+		return srv.(WSRouterServer).PublishMessageToWs(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: WSRouter_Publish_FullMethodName,
+		FullMethod: WSRouter_PublishMessageToWs_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WSRouterServer).Publish(ctx, req.(*PublishRequest))
+		return srv.(WSRouterServer).PublishMessageToWs(ctx, req.(*PublishMessageToWsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -108,12 +112,12 @@ func _WSRouter_Publish_Handler(srv interface{}, ctx context.Context, dec func(in
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var WSRouter_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "eventProto.WSRouter",
+	ServiceName: "protobuf.wsRouter.WSRouter",
 	HandlerType: (*WSRouterServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "Publish",
-			Handler:    _WSRouter_Publish_Handler,
+			MethodName: "PublishMessageToWs",
+			Handler:    _WSRouter_PublishMessageToWs_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -121,101 +125,105 @@ var WSRouter_ServiceDesc = grpc.ServiceDesc{
 }
 
 const (
-	WSRouterClient_GetEventFromWsRouter_FullMethodName = "/eventProto.WSRouterClient/GetEventFromWsRouter"
+	Clients_PublishEvents_FullMethodName = "/protobuf.wsRouter.Clients/PublishEvents"
 )
 
-// WSRouterClientClient is the client API for WSRouterClient service.
+// ClientsClient is the client API for Clients service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type WSRouterClientClient interface {
-	GetEventFromWsRouter(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error)
+//
+// These are the methods that a microservice should have in order for it to be considered a ws-router client.
+type ClientsClient interface {
+	PublishEvents(ctx context.Context, in *PublishEventsRequest, opts ...grpc.CallOption) (*PublishEventsResponse, error)
 }
 
-type wSRouterClientClient struct {
+type clientsClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewWSRouterClientClient(cc grpc.ClientConnInterface) WSRouterClientClient {
-	return &wSRouterClientClient{cc}
+func NewClientsClient(cc grpc.ClientConnInterface) ClientsClient {
+	return &clientsClient{cc}
 }
 
-func (c *wSRouterClientClient) GetEventFromWsRouter(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResponse, error) {
+func (c *clientsClient) PublishEvents(ctx context.Context, in *PublishEventsRequest, opts ...grpc.CallOption) (*PublishEventsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetResponse)
-	err := c.cc.Invoke(ctx, WSRouterClient_GetEventFromWsRouter_FullMethodName, in, out, cOpts...)
+	out := new(PublishEventsResponse)
+	err := c.cc.Invoke(ctx, Clients_PublishEvents_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// WSRouterClientServer is the server API for WSRouterClient service.
-// All implementations must embed UnimplementedWSRouterClientServer
+// ClientsServer is the server API for Clients service.
+// All implementations must embed UnimplementedClientsServer
 // for forward compatibility.
-type WSRouterClientServer interface {
-	GetEventFromWsRouter(context.Context, *GetRequest) (*GetResponse, error)
-	mustEmbedUnimplementedWSRouterClientServer()
+//
+// These are the methods that a microservice should have in order for it to be considered a ws-router client.
+type ClientsServer interface {
+	PublishEvents(context.Context, *PublishEventsRequest) (*PublishEventsResponse, error)
+	mustEmbedUnimplementedClientsServer()
 }
 
-// UnimplementedWSRouterClientServer must be embedded to have
+// UnimplementedClientsServer must be embedded to have
 // forward compatible implementations.
 //
 // NOTE: this should be embedded by value instead of pointer to avoid a nil
 // pointer dereference when methods are called.
-type UnimplementedWSRouterClientServer struct{}
+type UnimplementedClientsServer struct{}
 
-func (UnimplementedWSRouterClientServer) GetEventFromWsRouter(context.Context, *GetRequest) (*GetResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetEventFromWsRouter not implemented")
+func (UnimplementedClientsServer) PublishEvents(context.Context, *PublishEventsRequest) (*PublishEventsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PublishEvents not implemented")
 }
-func (UnimplementedWSRouterClientServer) mustEmbedUnimplementedWSRouterClientServer() {}
-func (UnimplementedWSRouterClientServer) testEmbeddedByValue()                        {}
+func (UnimplementedClientsServer) mustEmbedUnimplementedClientsServer() {}
+func (UnimplementedClientsServer) testEmbeddedByValue()                 {}
 
-// UnsafeWSRouterClientServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to WSRouterClientServer will
+// UnsafeClientsServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to ClientsServer will
 // result in compilation errors.
-type UnsafeWSRouterClientServer interface {
-	mustEmbedUnimplementedWSRouterClientServer()
+type UnsafeClientsServer interface {
+	mustEmbedUnimplementedClientsServer()
 }
 
-func RegisterWSRouterClientServer(s grpc.ServiceRegistrar, srv WSRouterClientServer) {
-	// If the following call pancis, it indicates UnimplementedWSRouterClientServer was
+func RegisterClientsServer(s grpc.ServiceRegistrar, srv ClientsServer) {
+	// If the following call pancis, it indicates UnimplementedClientsServer was
 	// embedded by pointer and is nil.  This will cause panics if an
 	// unimplemented method is ever invoked, so we test this at initialization
 	// time to prevent it from happening at runtime later due to I/O.
 	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
 		t.testEmbeddedByValue()
 	}
-	s.RegisterService(&WSRouterClient_ServiceDesc, srv)
+	s.RegisterService(&Clients_ServiceDesc, srv)
 }
 
-func _WSRouterClient_GetEventFromWsRouter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetRequest)
+func _Clients_PublishEvents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PublishEventsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(WSRouterClientServer).GetEventFromWsRouter(ctx, in)
+		return srv.(ClientsServer).PublishEvents(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: WSRouterClient_GetEventFromWsRouter_FullMethodName,
+		FullMethod: Clients_PublishEvents_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WSRouterClientServer).GetEventFromWsRouter(ctx, req.(*GetRequest))
+		return srv.(ClientsServer).PublishEvents(ctx, req.(*PublishEventsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// WSRouterClient_ServiceDesc is the grpc.ServiceDesc for WSRouterClient service.
+// Clients_ServiceDesc is the grpc.ServiceDesc for Clients service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var WSRouterClient_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "eventProto.WSRouterClient",
-	HandlerType: (*WSRouterClientServer)(nil),
+var Clients_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "protobuf.wsRouter.Clients",
+	HandlerType: (*ClientsServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetEventFromWsRouter",
-			Handler:    _WSRouterClient_GetEventFromWsRouter_Handler,
+			MethodName: "PublishEvents",
+			Handler:    _Clients_PublishEvents_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
